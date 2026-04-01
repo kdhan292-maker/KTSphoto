@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>📸 안전사진 촬영</title>
+<style>
+:root{
+  --primary:#1d4ed8;--primary-l:#eff6ff;
+  --green:#16a34a;--green-l:#f0fdf4;
+  --amber:#b45309;--amber-l:#fffbeb;
+  --g50:#f9fafb;--g100:#f3f4f6;--g200:#e5e7eb;
+  --g300:#d1d5db;--g400:#9ca3af;--g500:#6b7280;--g700:#374151;
+  --danger:#dc2626;--sh:0 1px 4px rgba(0,0,0,.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--g50);color:var(--g700);font-size:14px;max-width:480px;margin:0 auto;}
+
+/* ── 헤더 ── */
+.header{background:var(--primary);color:white;padding:11px 14px;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(29,78,216,.35);display:flex;align-items:center;gap:10px;}
+.header-title{flex:1;}
+.header-title h1{font-size:16px;font-weight:800;}
+.header-title p{font-size:11px;opacity:.75;margin-top:1px;}
+.btn-settings{background:rgba(255,255,255,.18);border:none;color:white;width:40px;height:40px;border-radius:10px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;}
+.btn-settings:active{background:rgba(255,255,255,.32);}
+
+/* ── 기본정보 입력 카드 (메인 화면 항상 표시) ── */
+.info-card{background:white;border-bottom:1.5px solid var(--g200);padding:11px 14px 12px;}
+.info-card-head{font-size:11px;font-weight:700;color:var(--g500);letter-spacing:.05em;margin-bottom:8px;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.ig-field{display:flex;flex-direction:column;gap:3px;}
+.ig-field.full{grid-column:1/-1;}
+.ig-field label{font-size:10px;font-weight:700;color:var(--g500);}
+.ig-field input{border:1.5px solid var(--g200);border-radius:7px;padding:8px 10px;font-size:14px;font-family:inherit;outline:none;background:var(--g50);font-weight:600;transition:border-color .15s;}
+.ig-field input:focus{border-color:var(--primary);background:white;}
+
+/* ── 폴더 상태 바 ── */
+.folder-bar{background:var(--g100);border-bottom:1px solid var(--g200);padding:7px 14px;display:flex;align-items:center;gap:8px;}
+.folder-bar-text{flex:1;font-size:12px;color:var(--g500);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.folder-bar-text.ok{color:var(--green);font-weight:700;}
+.btn-folder-sm{background:var(--primary);border:none;color:white;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;}
+.btn-folder-sm:active{background:#1e40af;}
+
+/* ── 메인 ── */
+.main{padding:12px;padding-bottom:90px;}
+
+/* ── 전주 카드 ── */
+.photo-card{background:white;border-radius:11px;border:1.5px solid var(--g200);box-shadow:var(--sh);margin-bottom:12px;overflow:hidden;}
+.pcard-head{background:linear-gradient(135deg,#1e40af,#1d4ed8);color:white;padding:10px 13px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
+.pcard-badge{background:rgba(255,255,255,.22);border-radius:10px;padding:2px 9px;font-size:11px;font-weight:700;}
+.pcard-body{padding:11px;}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.pgrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:8px;}
+.sec-lbl{font-size:11px;font-weight:700;color:var(--g500);padding:5px 8px;background:var(--g100);border-radius:6px;margin-bottom:7px;}
+
+/* ── 슬롯 (비어있음) ── */
+.slot-e{aspect-ratio:1;border:2px dashed var(--g300);border-radius:9px;background:var(--g50);display:flex;flex-direction:column;overflow:hidden;}
+.slot-e-label{background:var(--g100);padding:5px 6px;font-size:10px;font-weight:700;color:var(--g500);text-align:center;}
+.slot-e-btns{flex:1;display:grid;grid-template-rows:1fr 1fr;}
+.slot-btn{border:none;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:inherit;transition:background .12s;border-top:1px solid var(--g200);}
+.slot-btn:first-child{border-top:none;}
+.slot-btn:active{background:var(--g200);}
+.slot-btn .bi{font-size:20px;}
+.slot-btn .bt{font-size:9px;color:var(--g500);font-weight:700;}
+
+/* ── 슬롯 (사진 있음) ── */
+.slot-f{position:relative;border-radius:9px;overflow:hidden;aspect-ratio:1;border:1.5px solid var(--g200);}
+.slot-f img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;}
+.s-top{position:absolute;top:0;left:0;right:0;background:rgba(0,0,0,.55);padding:4px 6px;display:flex;justify-content:space-between;align-items:center;}
+.s-top span{font-size:10px;color:white;font-weight:700;}
+.s-acts{display:flex;gap:3px;}
+.s-act{background:rgba(255,255,255,.22);border:none;color:white;width:22px;height:22px;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.s-del{background:rgba(220,38,38,.75);}
+.s-cap{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.45);padding:3px 6px;}
+.s-cap input{width:100%;background:transparent;border:none;color:white;font-size:10px;outline:none;font-family:inherit;}
+.s-cap input::placeholder{color:rgba(255,255,255,.6);}
+.saved-dot{position:absolute;top:3px;left:3px;background:rgba(22,163,74,.9);color:white;font-size:8px;padding:1px 5px;border-radius:4px;font-weight:700;}
+
+/* ── 버튼 ── */
+.btn-add-slot{width:100%;padding:10px;border-radius:8px;border:1.5px dashed var(--g300);background:var(--g50);color:var(--g500);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .12s;}
+.btn-add-slot:active{background:var(--g200);}
+.btn-add-pole{width:100%;padding:13px;border-radius:10px;border:2px dashed var(--primary);background:var(--primary-l);color:var(--primary);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;transition:background .15s;}
+.btn-add-pole:active{background:#dbeafe;}
+
+/* ── 하단 저장 버튼 ── */
+.bottom-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:white;border-top:1.5px solid var(--g200);padding:10px 14px;box-shadow:0 -2px 12px rgba(0,0,0,.08);z-index:100;}
+.btn-save{width:100%;padding:14px;background:var(--primary);color:white;border:none;border-radius:11px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-save:active{background:#1e40af;}
+.btn-save-sub{font-size:11px;font-weight:400;opacity:.8;}
+
+/* ── 패널 공통 ── */
+.backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;}
+.backdrop.on{display:block;}
+.slide-panel{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;z-index:900;transition:transform .3s cubic-bezier(.32,.72,0,1);max-height:90vh;display:flex;flex-direction:column;}
+.slide-panel.on{transform:translateX(-50%) translateY(0);}
+.panel-drag{width:40px;height:4px;background:var(--g300);border-radius:2px;margin:10px auto 0;}
+.panel-head{padding:12px 16px 10px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.panel-head h2{font-size:16px;font-weight:800;}
+.panel-close{background:var(--g100);border:none;border-radius:20px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.panel-body{overflow-y:auto;flex:1;padding:14px;}
+.panel-foot{padding:10px 14px 20px;border-top:1px solid var(--g100);flex-shrink:0;}
+
+/* ── 설정 패널 내부 ── */
+.setting-section{margin-bottom:22px;}
+.setting-section-title{font-size:11px;font-weight:700;color:var(--g400);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;}
+.setting-desc{font-size:12px;color:var(--g500);margin-bottom:10px;line-height:1.5;background:var(--g100);border-radius:8px;padding:8px 10px;}
+
+/* 항목명/슬롯명 편집 행 */
+.fe-row{display:flex;align-items:center;gap:9px;padding:8px 11px;background:var(--g50);border:1px solid var(--g200);border-radius:9px;margin-bottom:7px;}
+.fe-orig{font-size:11px;font-weight:700;color:var(--g500);flex-shrink:0;min-width:74px;border-right:1px solid var(--g200);padding-right:9px;}
+.fe-arrow{font-size:12px;color:var(--g400);flex-shrink:0;}
+.fe-input{flex:1;border:1.5px solid var(--g200);border-radius:7px;padding:7px 10px;font-size:14px;font-family:inherit;outline:none;background:white;font-weight:600;}
+.fe-input:focus{border-color:var(--primary);}
+.btn-reset{width:100%;padding:9px;border-radius:8px;border:1.5px solid var(--g200);background:var(--g50);color:var(--g500);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:2px;}
+.btn-reset:active{background:var(--g200);}
+
+/* 폴더 선택 */
+.folder-row{background:var(--g50);border:1.5px solid var(--g200);border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px;}
+.folder-row.ok{background:var(--green-l);border-color:#bbf7d0;}
+.folder-row-info{flex:1;min-width:0;}
+.folder-row-label{font-size:11px;font-weight:700;color:var(--g500);margin-bottom:2px;}
+.folder-row-name{font-size:13px;font-weight:700;color:var(--g700);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.folder-row.ok .folder-row-name{color:var(--green);}
+.btn-folder-pick{background:var(--primary);border:none;color:white;border-radius:8px;padding:9px 13px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;}
+.btn-folder-pick:active{background:#1e40af;}
+.folder-note{font-size:11px;color:var(--g500);margin-top:7px;line-height:1.5;padding:8px 10px;background:var(--g100);border-radius:7px;}
+
+/* ── 저장 패널 ── */
+.save-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--g100);}
+.save-item:last-child{border-bottom:none;}
+.save-item img{width:52px;height:52px;object-fit:cover;border-radius:7px;border:1px solid var(--g200);flex-shrink:0;}
+.save-item-info{flex:1;min-width:0;}
+.save-item-name{font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.save-item-sub{font-size:10px;color:var(--g500);margin-top:2px;}
+.btn-dl{background:var(--primary);color:white;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;}
+.btn-dl.done{background:var(--green);}
+.btn-dl:active{opacity:.8;}
+.btn-dl-all{width:100%;padding:14px;background:var(--green);color:white;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-dl-all:active{opacity:.8;}
+
+/* ── 사진 보기 ── */
+.view-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9500;align-items:center;justify-content:center;padding:16px;}
+.view-modal.on{display:flex;}
+.vbox{background:white;border-radius:14px;overflow:hidden;width:100%;max-width:440px;}
+.vbox img{width:100%;max-height:72vh;object-fit:contain;display:block;background:#000;}
+.vfoot{padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.vfoot p{flex:1;font-size:12px;font-weight:600;}
+.vfoot button{background:var(--g100);border:none;border-radius:20px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+
+/* ── 토스트 ── */
+.toast{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.9);color:white;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .22s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center;}
+.toast.on{opacity:1;}
+
+/* ── 빈 상태 ── */
+.empty{text-align:center;padding:28px 18px;color:var(--g400);}
+.empty .ei{font-size:38px;margin-bottom:10px;}
+.empty p{font-size:13px;line-height:1.6;}
+
+/* ── 확인 버튼 ── */
+.btn-confirm{width:100%;padding:14px;background:var(--primary);color:white;border:none;border-radius:11px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;}
+.btn-confirm:active{background:#1e40af;}
+</style>
+</head>
+<body>
+
+<!-- ── 헤더 ── -->
+<div class="header">
+  <div class="header-title">
+    <h1>📸 안전사진 촬영</h1>
+    <p>사진 좌측하단에 정보 표가 자동 삽입됩니다</p>
+  </div>
+  <button class="btn-settings" onclick="openSettings()" title="설정">⚙️</button>
+</div>
+
+<!-- ── 기본정보 입력 (메인 화면 항상 표시) ── -->
+<div class="info-card">
+  <div class="info-card-head">📋 기본정보 입력</div>
+  <div class="info-grid" id="info-inputs-area"></div>
+</div>
+
+<!-- ── 폴더 상태 바 ── -->
+<div class="folder-bar">
+  <span class="folder-bar-text" id="folder-bar-text">📁 폴더 미설정 — 저장 버튼에서 개별 저장</span>
+  <button class="btn-folder-sm" onclick="selectFolder()">📂 폴더 선택</button>
+</div>
+
+<!-- ── 메인 ── -->
+<div class="main">
+  <div id="pole-list"></div>
+  <button class="btn-add-pole" onclick="addPole()">🗼 전주 추가</button>
+  <div id="empty-hint">
+    <div class="empty">
+      <div class="ei">📷</div>
+      <p>기본정보를 입력한 후<br><b>🗼 전주 추가</b>를 눌러 촬영하세요</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── 하단 저장 버튼 ── -->
+<div class="bottom-bar">
+  <button class="btn-save" onclick="onSaveBtn()">
+    💾 저장
+    <span class="btn-save-sub" id="save-sub">전체 사진 저장</span>
+  </button>
+</div>
+
+<!-- ════════════════════════════════════
+     ⚙️ 설정 패널
+════════════════════════════════════ -->
+<div class="backdrop" id="settings-backdrop" onclick="closeSettings()"></div>
+<div class="slide-panel" id="settings-panel">
+  <div class="panel-drag"></div>
+  <div class="panel-head">
+    <h2>⚙️ 설정</h2>
+    <button class="panel-close" onclick="applySettings()">확인</button>
+  </div>
+  <div class="panel-body">
+
+    <!-- ① 기본정보 항목명 변경 -->
+    <div class="setting-section">
+      <div class="setting-section-title">기본정보 항목명 변경</div>
+      <div class="setting-desc">
+        사진에 표시되는 항목 이름을 변경합니다.<br>
+        예) 구역명 → 노선명 &nbsp;/&nbsp; 단자번호 → 접속점번호
+      </div>
+      <div id="field-settings"></div>
+      <button class="btn-reset" onclick="resetFields()">↩ 항목명 기본값 초기화</button>
+    </div>
+
+    <!-- ② 사진 슬롯명 변경 -->
+    <div class="setting-section">
+      <div class="setting-section-title">사진 슬롯명 변경</div>
+      <div class="setting-desc">
+        기본 4컷의 이름을 원하는 명칭으로 변경합니다.<br>
+        예) 작업후(확대) → 완료(근접) &nbsp;/&nbsp; 작업전(전경) → 전체전경<br>
+        ※ 새로 추가하는 전주부터 적용됩니다.
+      </div>
+      <div id="label-settings"></div>
+      <button class="btn-reset" onclick="resetLabels()">↩ 슬롯명 기본값 초기화</button>
+    </div>
+
+    <!-- ③ 저장 폴더 -->
+    <div class="setting-section">
+      <div class="setting-section-title">사진 저장 폴더 (PC / Android)</div>
+      <div class="folder-row" id="folder-row-settings">
+        <div class="folder-row-info">
+          <div class="folder-row-label">저장 위치</div>
+          <div class="folder-row-name" id="folder-display">미설정</div>
+        </div>
+        <button class="btn-folder-pick" onclick="selectFolder()">📂 선택</button>
+      </div>
+      <div class="folder-note" id="folder-note">
+        📌 폴더를 선택하면 촬영 즉시 해당 폴더에 자동 저장됩니다.<br>
+        미설정 시 저장 버튼 → 공유/저장 방식으로 저장하세요.
+      </div>
+      <div id="android-folder-note" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;font-size:12px;color:#15803d;margin-top:8px;line-height:1.6;">
+        📱 <b>안드로이드 앱 모드</b><br>
+        사진이 <b>갤러리 → 사진 → 안전사진</b> 폴더에 자동 저장됩니다.<br>
+        별도 폴더 선택이 필요하지 않습니다.
+      </div>
+    </div>
+
+  </div>
+  <div class="panel-foot">
+    <button class="btn-confirm" onclick="applySettings()">✅ 확인</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     저장 패널 (폴더 미선택 시)
+════════════════════════════════════ -->
+<div class="backdrop" id="save-backdrop" onclick="closeSavePanel()"></div>
+<div class="slide-panel" id="save-panel">
+  <div class="panel-drag"></div>
+  <div class="panel-head">
+    <h2>💾 저장할 사진</h2>
+    <button class="panel-close" onclick="closeSavePanel()">닫기</button>
+  </div>
+  <div class="panel-body" id="save-list"></div>
+  <div class="panel-foot">
+    <button class="btn-dl-all" onclick="dlAll()">📸 다음 사진 저장하기</button>
+  </div>
+</div>
+
+<!-- ── 사진 보기 / 저장 안내 ── -->
+<div class="view-modal" id="view-modal" onclick="if(event.target===this)closeView()">
+  <div class="vbox">
+    <img id="view-img" src="" style="touch-action:pinch-zoom;">
+    <div id="save-guide" style="display:none;background:#1e40af;color:white;padding:10px 14px;font-size:13px;line-height:1.55;text-align:center;">
+      📌 <b>사진을 길게 누르세요</b> → <b>[이미지 저장]</b> 또는 <b>[다운로드]</b> 선택<br>
+      <span style="font-size:11px;opacity:.8;">저장 후 아래 버튼을 눌러 완료 표시하세요</span>
+    </div>
+    <div class="vfoot">
+      <p id="view-cap" style="flex:1;font-size:12px;font-weight:600;"></p>
+      <button id="btn-manual-done" style="display:none;background:var(--green);color:white;border:none;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;" onclick="confirmManualSave()">✓ 저장했습니다</button>
+      <button onclick="closeView()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 파일 입력: 카메라 / 갤러리 분리 -->
+<input type="file" id="input-camera"  accept="image/*" capture="environment" style="display:none" onchange="handleFile(this)">
+<input type="file" id="input-gallery" accept="image/*"                        style="display:none" onchange="handleFile(this)">
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ====================================================
+   안전사진 촬영 앱 v6
+   ─ 기본정보 입력: 메인 화면 항상 표시
+   ─ ⚙️ 설정: ① 기본정보 항목명 변경 ② 사진 슬롯명 변경 ③ 저장폴더
+   ─ 다운로드 보안오류 해결: Web Share API 우선 (모바일)
+   ─ 폴더 저장 실패 시 상세 오류 토스트
+   ─ Canvas 오버레이: 커스텀 항목명 반영
+   ─ 파일명: 전주번호_슬롯명.jpg
+==================================================== */
+
+const SKEY = 'safety_photo_v6';
+
+// ── 안드로이드 앱 감지 ──
+function isAndroidApp() {
+  return (typeof window.Android !== 'undefined' && window.Android !== null);
+}
+
+// ── 기본 항목 정의 (key 고정, label 변경 가능) ──
+const DEFAULT_FIELDS = [
+  { key:'date',     label:'작업일자', ph:'예) 260330',      mode:'numeric', max:6,  span:'half' },
+  { key:'area',     label:'구역명',   ph:'예) 서구1',       mode:'text',    max:0,  span:'half' },
+  { key:'pole',     label:'전주번호', ph:'예) 1간선-T001',  mode:'text',    max:0,  span:'full' },
+  { key:'terminal', label:'단자번호', ph:'예) F101R001',    mode:'text',    max:0,  span:'full' },
+];
+
+// ── 기본 사진 슬롯명 (변경 가능) ──
+const DEFAULT_LABELS = ['작업전(확대)','작업전(전경)','작업후(확대)','작업후(전경)'];
+
+let fields      = JSON.parse(JSON.stringify(DEFAULT_FIELDS));
+let photoLabels = [...DEFAULT_LABELS];   // 변경 가능한 슬롯명
+let state       = { poles: [] };
+let workDir     = null;
+let _target     = null;
+let _bc         = {};
+
+// ════════════════════════════════════════════
+//  초기화
+// ════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  // Android 앱일 때 폴더 관련 UI 조정
+  if (isAndroidApp()) {
+    const folderNote    = document.getElementById('folder-note');
+    const androidNote   = document.getElementById('android-folder-note');
+    const folderRow     = document.getElementById('folder-row-settings');
+    const folderPickBtn = folderRow ? folderRow.querySelector('.btn-folder-pick') : null;
+    if (folderNote)    folderNote.style.display    = 'none';
+    if (androidNote)   androidNote.style.display   = 'block';
+    if (folderPickBtn) folderPickBtn.style.display  = 'none';
+  }
+  const t = new Date();
+  const todayStr = String(t.getFullYear()).slice(2)
+    + String(t.getMonth()+1).padStart(2,'0')
+    + String(t.getDate()).padStart(2,'0');
+
+  loadData();
+  renderInfoInputs();
+
+  if (window._pendingVals) { restoreFieldValues(window._pendingVals); delete window._pendingVals; }
+
+  const dEl = document.getElementById('f-date');
+  if (dEl && !dEl.value) dEl.value = todayStr;
+
+  render();
+  updateFolderUI();
+  updateSaveSub();
+});
+
+// ── 토스트 ─────────────────────────────────
+let _tt;
+function toast(msg, ms=2800) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('on');
+  clearTimeout(_tt); _tt = setTimeout(() => el.classList.remove('on'), ms);
+}
+
+// ════════════════════════════════════════════
+//  기본정보 입력 필드 (메인 화면)
+// ════════════════════════════════════════════
+function renderInfoInputs() {
+  const area = document.getElementById('info-inputs-area');
+  if (!area) return;
+  area.innerHTML = fields.map(f => {
+    const maxA = f.max ? `maxlength="${f.max}"` : '';
+    const cls  = f.span === 'full' ? 'ig-field full' : 'ig-field';
+    return `<div class="${cls}">
+      <label>${escHtml(f.label)}</label>
+      <input type="text" id="f-${f.key}" placeholder="${escHtml(f.ph)}"
+             inputmode="${f.mode}" ${maxA}>
+    </div>`;
+  }).join('');
+}
+
+function getInfo() {
+  const r = {};
+  fields.forEach(f => {
+    const el = document.getElementById('f-' + f.key);
+    r[f.key] = el ? el.value.trim() : '';
+  });
+  return r;
+}
+
+function getFieldValues() {
+  const v = {};
+  fields.forEach(f => {
+    const el = document.getElementById('f-' + f.key);
+    if (el) v[f.key] = el.value;
+  });
+  return v;
+}
+
+function restoreFieldValues(vals) {
+  if (!vals) return;
+  fields.forEach(f => {
+    const el = document.getElementById('f-' + f.key);
+    if (el && vals[f.key] !== undefined) el.value = vals[f.key];
+  });
+}
+
+// ════════════════════════════════════════════
+//  ⚙️ 설정 패널
+// ════════════════════════════════════════════
+function openSettings() {
+  renderFieldSettings();
+  renderLabelSettings();
+  document.getElementById('settings-backdrop').classList.add('on');
+  document.getElementById('settings-panel').classList.add('on');
+}
+function closeSettings() {
+  document.getElementById('settings-backdrop').classList.remove('on');
+  document.getElementById('settings-panel').classList.remove('on');
+}
+
+function applySettings() {
+  const oldVals = getFieldValues();
+
+  // ① 기본정보 항목명 적용
+  let changed = false;
+  fields.forEach(f => {
+    const el = document.getElementById('fs-' + f.key);
+    if (el) { const v = el.value.trim(); if (v && v !== f.label) { f.label = v; changed = true; } }
+  });
+
+  // ② 사진 슬롯명 적용
+  photoLabels.forEach((_, i) => {
+    const el = document.getElementById('ls-' + i);
+    if (el) { const v = el.value.trim(); if (v) photoLabels[i] = v; }
+  });
+
+  // 입력 필드 레이블 업데이트 (값 유지)
+  renderInfoInputs();
+  restoreFieldValues(oldVals);
+
+  closeSettings();
+  saveLocal();
+  toast('✅ 설정이 저장되었습니다');
+}
+
+// ① 기본정보 항목명 편집 렌더링
+function renderFieldSettings() {
+  const area = document.getElementById('field-settings');
+  if (!area) return;
+  area.innerHTML = fields.map(f => {
+    const orig = DEFAULT_FIELDS.find(d => d.key === f.key)?.label || f.key;
+    return `<div class="fe-row">
+      <span class="fe-orig">${escHtml(orig)}</span>
+      <span class="fe-arrow">→</span>
+      <input class="fe-input" id="fs-${f.key}" type="text"
+             value="${escHtml(f.label)}" placeholder="항목명 입력">
+    </div>`;
+  }).join('');
+}
+
+function resetFields() {
+  if (!confirm('기본정보 항목명을 기본값으로 초기화하시겠습니까?')) return;
+  const oldVals = getFieldValues();
+  fields = JSON.parse(JSON.stringify(DEFAULT_FIELDS));
+  renderFieldSettings();
+  renderInfoInputs();
+  restoreFieldValues(oldVals);
+  toast('↩ 항목명이 초기화되었습니다');
+}
+
+// ② 사진 슬롯명 편집 렌더링
+function renderLabelSettings() {
+  const area = document.getElementById('label-settings');
+  if (!area) return;
+  area.innerHTML = photoLabels.map((lbl, i) => `
+    <div class="fe-row">
+      <span class="fe-orig">${escHtml(DEFAULT_LABELS[i])}</span>
+      <span class="fe-arrow">→</span>
+      <input class="fe-input" id="ls-${i}" type="text"
+             value="${escHtml(lbl)}" placeholder="슬롯명 입력">
+    </div>`).join('');
+}
+
+function resetLabels() {
+  if (!confirm('사진 슬롯명을 기본값으로 초기화하시겠습니까?')) return;
+  photoLabels = [...DEFAULT_LABELS];
+  renderLabelSettings();
+  toast('↩ 슬롯명이 초기화되었습니다');
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ════════════════════════════════════════════
+//  폴더 선택 / UI
+// ════════════════════════════════════════════
+function updateFolderUI() {
+  // Android 앱 환경: 폴더 UI 대신 갤러리 자동저장 메시지 표시
+  if (isAndroidApp()) {
+    const barText = document.getElementById('folder-bar-text');
+    if (barText) {
+      barText.textContent = '📱 사진이 갤러리 [사진/안전사진]에 자동 저장됩니다';
+      barText.className = 'folder-bar-text ok';
+    }
+    // 폴더 선택 버튼 숨김
+    const folderBtn = document.querySelector('.btn-folder-sm');
+    if (folderBtn) folderBtn.style.display = 'none';
+    return;
+  }
+
+  const barText = document.getElementById('folder-bar-text');
+  if (barText) {
+    barText.textContent = workDir
+      ? `📂 ${workDir.name} (저장 폴더 지정됨)`
+      : '📁 폴더 미설정 — 저장 버튼에서 개별 저장';
+    barText.className = 'folder-bar-text' + (workDir ? ' ok' : '');
+  }
+  const row  = document.getElementById('folder-row-settings');
+  const disp = document.getElementById('folder-display');
+  if (row && disp) {
+    row.classList.toggle('ok', !!workDir);
+    disp.textContent = workDir ? '📂 ' + workDir.name : '미설정';
+  }
+}
+
+async function selectFolder() {
+  if (isAndroidApp()) {
+    toast('📱 안드로이드 앱은 갤러리에 자동 저장됩니다');
+    return;
+  }
+  if (!window.showDirectoryPicker) {
+    const n = document.getElementById('folder-note');
+    if (n) n.innerHTML = '⚠️ 이 브라우저는 폴더 직접 저장을 지원하지 않습니다.<br>저장 버튼에서 개별 저장(공유)으로 저장하세요.';
+    toast('⚠️ 폴더 저장 미지원 — 개별 저장 사용');
+    return;
+  }
+  try {
+    workDir = await window.showDirectoryPicker({ mode: 'readwrite' });
+    updateFolderUI();
+    const n = document.getElementById('folder-note');
+    if (n) n.innerHTML = `✅ <b>${workDir.name}</b> 폴더에 촬영 즉시 자동 저장됩니다.`;
+    await reloadFromDisk();
+    render();
+    updateSaveSub();
+    toast('✅ 폴더 설정: ' + workDir.name);
+  } catch(e) {
+    if (e.name !== 'AbortError') toast('❌ 폴더 선택 실패: ' + e.message);
+  }
+}
+
+function updateSaveSub() {
+  const el = document.getElementById('save-sub');
+  if (!el) return;
+  if (workDir) {
+    // 대기 중인 사진 수 계산
+    const pending = state.poles.reduce((n, pole) =>
+      n + pole.photos.filter(ph => ph._pendingFolder && !ph.saved && !ph.filePath).length, 0);
+    el.textContent = pending > 0
+      ? `📂 ${workDir.name} — ${pending}장 저장 대기`
+      : `📂 ${workDir.name}`;
+  } else {
+    el.textContent = '전체 사진 저장';
+  }
+}
+
+// ════════════════════════════════════════════
+//  전주 관리
+// ════════════════════════════════════════════
+function makePhotos(pid) {
+  // 현재 설정된 슬롯명(photoLabels)으로 기본 4컷 생성
+  return photoLabels.map((lbl, i) => ({
+    id: 'ph'+(i+1)+'_'+pid, label: lbl,
+    src:'', caption:'', isDefault:true, filePath:'', saved:false
+  }));
+}
+
+function addPole() {
+  const info = getInfo();
+  if (!info.pole && !info.date) {
+    toast('기본정보(전주번호 또는 작업일자)를 먼저 입력하세요');
+    document.getElementById('f-pole')?.focus();
+    return;
+  }
+  const id = Date.now();
+  state.poles.push({ id, ...info, photos: makePhotos(id) });
+  document.getElementById('empty-hint').style.display = 'none';
+  render();
+  setTimeout(() => {
+    const el = document.getElementById('pole-' + id);
+    if (el) el.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }, 60);
+}
+
+function deletePole(id) {
+  if (!confirm('이 전주를 삭제하시겠습니까?')) return;
+  state.poles = state.poles.filter(p => p.id != id);
+  render();
+}
+
+function getFileName(pole, label) {
+  const s = x => (x||'').replace(/[\\/:*?"<>|\s]/g,'_').trim() || 'X';
+  return `${s(pole.pole)}_${s(label)}`;
+}
+
+// ── 렌더링 ─────────────────────────────────
+function render() {
+  const list = document.getElementById('pole-list');
+  const hint = document.getElementById('empty-hint');
+  if (!state.poles.length) { list.innerHTML=''; hint.style.display='block'; return; }
+  hint.style.display = 'none';
+  list.innerHTML = state.poles.map(pole => {
+    const filled = pole.photos.filter(ph => ph.src||ph._displaySrc||ph.filePath).length;
+    const total  = pole.photos.length;
+    const defs   = pole.photos.filter(ph => ph.isDefault);
+    const extras = pole.photos.filter(ph => !ph.isDefault);
+    const sub    = pole.terminal
+      ? `<div style="font-size:11px;font-weight:400;opacity:.8;margin-top:2px">${pole.terminal}</div>` : '';
+    return `
+    <div class="photo-card" id="pole-${pole.id}">
+      <div class="pcard-head">
+        <div>
+          <div>${pole.pole || '(전주번호 미입력)'}</div>
+          ${sub}
+        </div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span class="pcard-badge">${filled}/${total}장</span>
+          <button onclick="deletePole(${pole.id})"
+            style="background:rgba(220,38,38,.7);border:none;color:white;width:26px;height:26px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">×</button>
+        </div>
+      </div>
+      <div class="pcard-body">
+        <div class="sec-lbl">📷 기본 4컷</div>
+        <div class="pgrid">${defs.map(ph => renderSlot(pole.id, ph)).join('')}</div>
+        ${extras.length ? `
+          <div class="sec-lbl">📷 추가사진</div>
+          <div class="pgrid3">${extras.map(ph => renderSlot(pole.id, ph)).join('')}</div>` : ''}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+          <button class="btn-add-slot" onclick="triggerInput(${pole.id},null,'camera')">📷 추가 촬영</button>
+          <button class="btn-add-slot" onclick="triggerInput(${pole.id},null,'gallery')">🖼️ 갤러리 추가</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSlot(poleId, ph) {
+  const src = ph._displaySrc || ph.src || '';
+  if (src) {
+    const del  = ph.isDefault ? `clearSlot(${poleId},'${ph.id}')` : `delExtra(${poleId},'${ph.id}')`;
+    const cap  = (ph.caption||'').replace(/"/g,'&quot;');
+    const badge = (ph.saved||ph.filePath)
+      ? `<div class="saved-dot">✓저장</div>`
+      : ph._pendingFolder
+        ? `<div class="saved-dot" style="background:rgba(180,83,9,.9)">💾대기</div>`
+        : '';
+    return `<div class="slot-f">
+      ${badge}
+      <img src="${src}" onclick="openView('${poleId}','${ph.id}')">
+      <div class="s-top">
+        <span>${ph.label||''}</span>
+        <div class="s-acts">
+          <button class="s-act" onclick="triggerInput(${poleId},'${ph.id}','camera')">📷</button>
+          <button class="s-act" onclick="triggerInput(${poleId},'${ph.id}','gallery')">🖼</button>
+          <button class="s-act s-del" onclick="${del}">×</button>
+        </div>
+      </div>
+      <div class="s-cap">
+        <input type="text" value="${cap}" placeholder="설명..."
+          onclick="event.stopPropagation()"
+          oninput="updateCap(${poleId},'${ph.id}',this.value)">
+      </div>
+    </div>`;
+  } else if (ph.filePath) {
+    setTimeout(() => _loadFromDisk(poleId, ph.id), 50);
+    return `<div class="slot-e" id="phslot-${ph.id}" style="background:#f0fdf4;border-color:#bbf7d0">
+      <div class="slot-e-label">${ph.label||''}</div>
+      <div class="slot-e-btns">
+        <button class="slot-btn"><span class="bi">⏳</span><span class="bt">로드중</span></button>
+      </div>
+    </div>`;
+  } else {
+    return `<div class="slot-e">
+      <div class="slot-e-label">${ph.label||''}</div>
+      <div class="slot-e-btns">
+        <button class="slot-btn" onclick="triggerInput(${poleId},'${ph.id}','camera')">
+          <span class="bi">📷</span><span class="bt">카메라</span>
+        </button>
+        <button class="slot-btn" onclick="triggerInput(${poleId},'${ph.id}','gallery')">
+          <span class="bi">🖼️</span><span class="bt">갤러리</span>
+        </button>
+      </div>
+    </div>`;
+  }
+}
+
+async function _loadFromDisk(poleId, photoId) {
+  if (!workDir) return;
+  const pole = state.poles.find(p => p.id == poleId); if (!pole) return;
+  const ph   = pole.photos.find(x => x.id === photoId); if (!ph||!ph.filePath) return;
+  await getBlobUrl(ph);
+  const s = document.getElementById('phslot-'+ph.id);
+  if (s && ph._displaySrc) s.outerHTML = renderSlot(poleId, ph);
+}
+
+// ── 파일 입력 ─────────────────────────────────
+function triggerInput(poleId, photoId, mode) {
+  _target = { poleId, photoId };
+  const inp = document.getElementById(mode === 'gallery' ? 'input-gallery' : 'input-camera');
+  inp.multiple = !photoId;
+  inp.value = '';
+  inp.click();
+}
+
+function handleFile(input) {
+  const files = Array.from(input.files);
+  if (!files.length || !_target) { input.value=''; return; }
+  const pole = state.poles.find(p => p.id == _target.poleId);
+  if (!pole) { input.value=''; return; }
+  const tgt = { ..._target }; let done = 0;
+  files.forEach((file, fi) => {
+    const r = new FileReader();
+    r.onload = async e => {
+      const raw = e.target.result;
+      if (tgt.photoId) {
+        const ph = pole.photos.find(x => x.id === tgt.photoId);
+        if (ph) await processPhoto(pole, ph, raw);
+      } else {
+        const extras = pole.photos.filter(p => !p.isDefault);
+        const np = {
+          id: 'phx_'+Date.now()+'_'+fi,
+          label: '추가사진'+(extras.length+fi+1),
+          src:'', caption:'', isDefault:false, filePath:'', saved:false
+        };
+        pole.photos.push(np);
+        await processPhoto(pole, np, raw);
+      }
+      if (++done === files.length) { render(); saveLocal(); updateSaveSub(); }
+    };
+    r.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+// ── 사진 처리 (오버레이 적용 → 메모리 보관) ──────────────
+// ※ 폴더 저장은 여기서 하지 않음!
+//   Android에서 카메라 앱→브라우저 복귀 시 FileReader.onload는
+//   사용자 제스처로 인정되지 않아 createWritable()이 접근거부됨.
+//   → 저장 버튼 클릭(사용자 제스처) 시점에 한꺼번에 저장함.
+async function processPhoto(pole, ph, rawBase64) {
+  const overlaid = await addOverlay(rawBase64, {
+    date: pole.date, area: pole.area, pole: pole.pole, terminal: pole.terminal, label: ph.label
+  });
+  const ext      = getExt(rawBase64);
+  const fileName = getFileName(pole, ph.label) + '.' + ext;
+
+  // 항상 메모리에 보관 (폴더 선택 여부 무관)
+  ph.src         = overlaid;
+  ph._displaySrc = overlaid;
+  ph._fileName   = fileName;
+  ph.saved       = false;
+  ph._pendingFolder = !!workDir;
+
+  // ── Android 앱: 네이티브 MediaStore로 갤러리에 자동 저장 ──
+  if (isAndroidApp()) {
+    try {
+      const ok = window.Android.savePhoto(overlaid, fileName);
+      ph.saved          = ok;
+      ph._pendingFolder = false;
+      if (ok) {
+        toast('✅ 갤러리 저장: ' + fileName);
+      } else {
+        toast('⚠️ 갤러리 저장 실패 — 수동 저장 버튼 이용');
+      }
+    } catch(e) {
+      console.error('Android.savePhoto 오류:', e);
+    }
+  }
+}
+
+// ════════════════════════════════════════════
+//  저장 버튼
+// ════════════════════════════════════════════
+function onSaveBtn() {
+  if (isAndroidApp()) { androidSaveAll(); return; }
+  if (workDir) { saveToFolder(); return; }
+  openSavePanel();
+}
+
+// ── Android 앱: 미저장 사진 일괄 재저장 ──
+async function androidSaveAll() {
+  let saved = 0, failed = 0, skip = 0;
+  for (const pole of state.poles) {
+    for (const ph of pole.photos) {
+      const src = ph._displaySrc || ph.src;
+      if (!src) continue;
+      if (ph.saved) { skip++; continue; }
+      const ext = getExt(src);
+      const fn  = ph._fileName || getFileName(pole, ph.label) + '.' + ext;
+      try {
+        const ok = window.Android.savePhoto(src, fn);
+        if (ok) { ph.saved = true; saved++; }
+        else failed++;
+      } catch(e) { failed++; }
+    }
+  }
+  render(); saveLocal();
+  if (saved === 0 && failed === 0) {
+    if (skip > 0) toast('📸 모든 사진이 이미 갤러리에 저장되어 있습니다');
+    else toast('⚠️ 저장할 사진이 없습니다');
+  } else if (failed > 0 && saved === 0) {
+    toast('❌ 갤러리 저장 실패 — 권한을 확인하세요');
+  } else if (failed > 0) {
+    toast(`⚠️ ${saved}장 저장 완료 / ${failed}장 실패`);
+  } else {
+    toast(`✅ ${saved}장이 갤러리 [사진/안전사진]에 저장되었습니다`);
+  }
+}
+
+// 폴더 쓰기 권한 확인/재요청 (사용자 제스처 시점에서만 동작)
+async function ensureFolderPermission() {
+  if (!workDir) return false;
+  try {
+    // 현재 권한 상태 확인
+    let perm = await workDir.queryPermission({ mode: 'readwrite' });
+    if (perm === 'granted') return true;
+    // 권한 만료된 경우 재요청 (사용자 제스처가 있어야 작동)
+    perm = await workDir.requestPermission({ mode: 'readwrite' });
+    return perm === 'granted';
+  } catch(e) {
+    // queryPermission / requestPermission 미지원 브라우저 → 그냥 시도
+    return true;
+  }
+}
+
+async function saveToFolder() {
+  toast('🔄 저장 중...', 60000);
+
+  // ① 사용자 제스처 시점에서 권한 확인/재요청
+  const hasPermission = await ensureFolderPermission();
+  if (!hasPermission) {
+    toast('❌ 폴더 접근 권한이 거부되었습니다. 📂 폴더를 다시 선택해주세요', 6000);
+    workDir = null;
+    updateFolderUI();
+    updateSaveSub();
+    return;
+  }
+
+  let saved = 0, failed = 0;
+  for (const pole of state.poles) {
+    for (const ph of pole.photos) {
+      const src = ph._displaySrc || ph.src;
+      if (src && !ph.filePath && src.startsWith('data:')) {
+        const ext = getExt(src);
+        const fn  = ph._fileName || getFileName(pole, ph.label) + '.' + ext;
+        try {
+          const blob = base64ToBlob(src);
+          const fh   = await workDir.getFileHandle(fn, { create:true });
+          const w    = await fh.createWritable();
+          await w.write(blob);
+          await w.close();
+          ph.filePath    = fn;
+          ph._displaySrc = URL.createObjectURL(blob);
+          ph.saved       = true;
+          ph._pendingFolder = false;
+          _bc[fn]        = ph._displaySrc;
+          ph.src         = '';
+          saved++;
+        } catch(e) {
+          console.error('저장 실패:', fn, e);
+          failed++;
+        }
+      }
+    }
+  }
+  render(); saveLocal();
+  if (failed > 0 && saved === 0) {
+    toast(`❌ 폴더 저장 실패(${failed}장) — 📂 폴더를 다시 선택해주세요`, 6000);
+  } else if (failed > 0) {
+    toast(`⚠️ ${saved}장 저장 / ${failed}장 실패`, 5000);
+  } else if (saved > 0) {
+    toast(`✅ ${saved}장이 [${workDir.name}] 폴더에 저장되었습니다`);
+  } else {
+    toast('📁 모든 사진이 이미 저장되어 있습니다');
+  }
+}
+
+// ── 저장 패널 ─────────────────────────────────
+let _saveItems = [];
+
+function openSavePanel() {
+  _saveItems = [];
+  for (const pole of state.poles)
+    for (const ph of pole.photos) {
+      const src = ph._displaySrc || ph.src;
+      if (src) _saveItems.push({
+        src, ph, done: ph.saved||false,
+        name: ph._fileName || getFileName(pole, ph.label)+'.jpg'
+      });
+    }
+  if (!_saveItems.length) { toast('⚠️ 먼저 사진을 촬영하세요'); return; }
+
+  document.getElementById('save-list').innerHTML = `
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#1e40af;line-height:1.6;">
+      📱 <b>모바일 저장 방법</b>: 각 사진 버튼을 탭 → 사진이 크게 열리면 <b>길게 눌러 [이미지 저장]</b> 선택 → 완료 버튼<br>
+      💻 <b>PC</b>: 버튼을 클릭하면 자동 다운로드됩니다
+    </div>` +
+  _saveItems.map((item, i) => `
+    <div class="save-item" id="sitem-${i}">
+      <img src="${item.src}" onerror="this.style.display='none'" style="cursor:pointer;" onclick="dlOne(${i})">
+      <div class="save-item-info">
+        <div class="save-item-name">${item.name}</div>
+        <div class="save-item-sub" id="ssub-${i}">${item.done ? '✓ 저장완료' : '탭하여 저장'}</div>
+      </div>
+      <button class="btn-dl ${item.done?'done':''}" id="sbtn-${i}" onclick="dlOne(${i})">
+        ${item.done ? '✓완료' : '📸 저장'}
+      </button>
+    </div>`).join('');
+
+  document.getElementById('save-backdrop').classList.add('on');
+  document.getElementById('save-panel').classList.add('on');
+}
+
+function closeSavePanel() {
+  document.getElementById('save-backdrop').classList.remove('on');
+  document.getElementById('save-panel').classList.remove('on');
+  saveLocal(); render();
+}
+
+// ── 개별 저장 ──────────────────────────────────────────────────────────────
+// 보안오류 근본 해결: 다운로드 방식 대신 전체화면 표시 → 길게 눌러 갤러리 저장
+// <img> 태그는 다운로드가 아니므로 HTTP/HTTPS 무관하게 보안 제한 없음
+let _manualSaveIdx = -1;
+
+async function dlOne(i) {
+  const item = _saveItems[i]; if (!item) return;
+
+  // ① PC 환경: Web Share가 아닌 blob 다운로드 (PC는 보안오류 없음)
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (!isMobile) {
+    try {
+      const blobUrl = URL.createObjectURL(base64ToBlob(item.src));
+      const a = document.createElement('a');
+      a.href = blobUrl; a.download = item.name;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+      markDone(i, item);
+      return;
+    } catch(e) { console.warn('PC download failed:', e); }
+  }
+
+  // ② 모바일: Web Share API 시도 (HTTPS 또는 file:// 환경에서만 작동)
+  if (navigator.share && navigator.canShare) {
+    try {
+      const file = new File([base64ToBlob(item.src)], item.name, { type: 'image/jpeg' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: item.name });
+        markDone(i, item);
+        return;
+      }
+    } catch(e) {
+      if (e.name === 'AbortError') return; // 사용자가 직접 취소
+      console.warn('Share API 실패:', e);
+    }
+  }
+
+  // ③ 최종 fallback: 전체화면으로 사진 표시 → 길게 눌러 갤러리 저장
+  //    (HTTP/HTTPS 무관, 삼성 인터넷 포함 모든 브라우저에서 작동)
+  showForManualSave(i, item);
+}
+
+function showForManualSave(i, item) {
+  _manualSaveIdx = i;
+  document.getElementById('view-img').src = item.src;
+  document.getElementById('view-cap').textContent = item.name;
+  document.getElementById('save-guide').style.display = 'block';
+  document.getElementById('btn-manual-done').style.display = 'inline-block';
+  document.getElementById('view-modal').classList.add('on');
+}
+
+function confirmManualSave() {
+  if (_manualSaveIdx >= 0) {
+    const item = _saveItems[_manualSaveIdx];
+    if (item) markDone(_manualSaveIdx, item);
+  }
+  closeView();
+}
+
+function markDone(i, item) {
+  item.done = true; item.ph.saved = true;
+  const btn = document.getElementById('sbtn-' + i);
+  const sub = document.getElementById('ssub-' + i);
+  if (btn) { btn.textContent='✓완료'; btn.classList.add('done'); }
+  if (sub) sub.textContent = '✓ 저장완료';
+}
+
+function dlAll() {
+  const pending = _saveItems.filter(x => !x.done);
+  if (!pending.length) { toast('✅ 모두 저장 완료!'); return; }
+  // 첫 번째 미저장 항목 전체화면으로 바로 열기
+  const first = _saveItems.findIndex(x => !x.done);
+  if (first >= 0) dlOne(first);
+}
+
+// ── 사진 보기 (일반) ────────────────────────────────
+async function openView(poleId, photoId) {
+  const pole = state.poles.find(p => String(p.id)===String(poleId)); if (!pole) return;
+  const ph   = (pole.photos||[]).find(x => x.id===photoId); if (!ph) return;
+  const src  = await getBlobUrl(ph); if (!src) { toast('⚠️ 사진 없음'); return; }
+  _manualSaveIdx = -1;
+  document.getElementById('view-img').src = src;
+  document.getElementById('view-cap').textContent = (ph.label||'') + (ph.caption ? ' — '+ph.caption : '');
+  document.getElementById('save-guide').style.display = 'none';
+  document.getElementById('btn-manual-done').style.display = 'none';
+  document.getElementById('view-modal').classList.add('on');
+}
+function closeView() {
+  _manualSaveIdx = -1;
+  document.getElementById('save-guide').style.display = 'none';
+  document.getElementById('btn-manual-done').style.display = 'none';
+  document.getElementById('view-modal').classList.remove('on');
+}
+
+// ── 슬롯 조작 ────────────────────────────────
+function clearSlot(poleId, photoId) {
+  const pole = state.poles.find(p => p.id==poleId); if (!pole) return;
+  const ph   = pole.photos.find(x => x.id===photoId);
+  if (ph) { ph.src=''; ph.filePath=''; ph._displaySrc=''; ph.caption=''; ph.saved=false; }
+  render();
+}
+function delExtra(poleId, photoId) {
+  const pole = state.poles.find(p => p.id==poleId); if (!pole) return;
+  pole.photos = pole.photos.filter(x => x.id !== photoId);
+  render();
+}
+function updateCap(poleId, photoId, val) {
+  const pole = state.poles.find(p => p.id==poleId); if (!pole) return;
+  const ph   = pole.photos.find(x => x.id===photoId);
+  if (ph) ph.caption = val;
+}
+
+// ════════════════════════════════════════════
+//  Canvas 오버레이 (커스텀 항목명 반영)
+// ════════════════════════════════════════════
+function addOverlay(base64, info) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const W = img.width, H = img.height;
+      const cv = document.createElement('canvas');
+      cv.width = W; cv.height = H;
+      const ctx = cv.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+
+      const fs     = Math.max(16, Math.round(H * 0.024));
+      const pad    = Math.round(fs * 0.55);
+      const rh     = Math.round(fs * 1.7);
+      const margin = Math.round(H * 0.015);
+
+      // 변경된 항목명 사용
+      const lbl = key => (fields.find(f=>f.key===key)||{}).label || key;
+
+      const rows = [
+        [lbl('date'),     info.date     || '—'],
+        [lbl('area'),     info.area     || '—'],
+        [lbl('pole'),     info.pole     || '—'],
+        [lbl('terminal'), info.terminal || '—'],
+        ['촬영구분',        info.label    || '—'],
+      ];
+
+      ctx.font = `bold ${fs}px sans-serif`;
+      let lblW = 0; rows.forEach(r => { lblW = Math.max(lblW, ctx.measureText(r[0]).width); });
+      lblW = Math.round(lblW + pad * 2);
+      let valW = 0; rows.forEach(r => { valW = Math.max(valW, ctx.measureText(r[1]).width); });
+      valW = Math.round(valW + pad * 2 + 8);
+
+      const tW = lblW + valW, tH = rows.length * rh;
+      const tx = margin, ty = H - tH - margin;
+
+      ctx.fillStyle = 'rgba(0,0,0,0.72)';
+      rRect(ctx, tx, ty, tW, tH, 7); ctx.fill();
+
+      rows.forEach((row, i) => {
+        const ry = ty + i * rh;
+        if (i > 0) {
+          ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=1;
+          ctx.beginPath(); ctx.moveTo(tx,ry); ctx.lineTo(tx+tW,ry); ctx.stroke();
+        }
+        ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(tx+lblW,ry); ctx.lineTo(tx+lblW,ry+rh); ctx.stroke();
+        const ty2 = ry + rh*0.5 + fs*0.37;
+        ctx.fillStyle='rgba(255,255,255,0.07)'; ctx.fillRect(tx,ry,lblW,rh);
+        ctx.fillStyle='#fde047'; ctx.font=`bold ${fs}px sans-serif`; ctx.fillText(row[0],tx+pad,ty2);
+        ctx.fillStyle='white';   ctx.font=`${fs}px sans-serif`;       ctx.fillText(row[1],tx+lblW+pad,ty2);
+      });
+      ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1.5;
+      rRect(ctx,tx,ty,tW,tH,7); ctx.stroke();
+      resolve(cv.toDataURL('image/jpeg', 0.88));
+    };
+    img.onerror = () => resolve(base64);
+    img.src = base64;
+  });
+}
+
+function rRect(ctx,x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
+}
+
+// ── 유틸 ────────────────────────────────────
+function getExt(src){ const m=src.match(/data:image\/(\w+)/); return(!m||m[1]==='jpeg')?'jpg':m[1]; }
+
+function base64ToBlob(base64) {
+  const arr  = base64.split(',');
+  const mime = (arr[0].match(/:(.*?);/) || ['','image/jpeg'])[1];
+  const bin  = atob(arr[1]);
+  const u8   = new Uint8Array(bin.length);
+  for (let i=0; i<bin.length; i++) u8[i] = bin.charCodeAt(i);
+  return new Blob([u8], { type: mime });
+}
+
+async function getBlobUrl(ph) {
+  if (ph._displaySrc) return ph._displaySrc;
+  if (ph.src && ph.src.startsWith('data:')) return ph.src;
+  if (ph.filePath && workDir) {
+    if (_bc[ph.filePath]) { ph._displaySrc=_bc[ph.filePath]; return ph._displaySrc; }
+    try {
+      const fh=await workDir.getFileHandle(ph.filePath);
+      const f=await fh.getFile();
+      const url=URL.createObjectURL(f);
+      _bc[ph.filePath]=url; ph._displaySrc=url; return url;
+    } catch(e){ console.error('파일 로드 실패:', ph.filePath, e); return ''; }
+  }
+  return '';
+}
+
+async function reloadFromDisk() {
+  if (!workDir) return;
+  for (const pole of state.poles)
+    for (const ph of pole.photos)
+      if (ph.filePath && !ph._displaySrc) await getBlobUrl(ph);
+}
+
+// ── localStorage ─────────────────────────────
+function saveLocal() {
+  const vals = getFieldValues();
+  const rec  = {
+    savedAt:     new Date().toISOString(),
+    fieldLabels: fields.map(f => ({ key: f.key, label: f.label })),
+    photoLabels: photoLabels,
+    fieldValues: vals,
+    poles: state.poles.map(pole => ({
+      ...pole,
+      photos: pole.photos.map(ph => ({
+        id:ph.id, label:ph.label, caption:ph.caption, isDefault:ph.isDefault,
+        src:      ph.filePath ? '' : (ph.src||''),
+        filePath: ph.filePath||'', saved:ph.saved||false, _fileName:ph._fileName||''
+      }))
+    }))
+  };
+  try { localStorage.setItem(SKEY, JSON.stringify(rec)); }
+  catch(e) {
+    try {
+      rec.poles.forEach(p => p.photos.forEach(ph => { ph.src=''; }));
+      localStorage.setItem(SKEY, JSON.stringify(rec));
+    } catch(e2) { console.warn('localStorage 저장 실패:', e2); }
+  }
+}
+
+function loadData() {
+  try {
+    const r = JSON.parse(localStorage.getItem(SKEY)||'null');
+    // 구버전 키(v5) 호환
+    const r5 = r || JSON.parse(localStorage.getItem('safety_photo_v5')||'null');
+    if (!r5) return;
+
+    if (r5.fieldLabels) {
+      r5.fieldLabels.forEach(fl => {
+        const f = fields.find(x => x.key === fl.key);
+        if (f && fl.label) f.label = fl.label;
+      });
+    }
+    if (r5.photoLabels && Array.isArray(r5.photoLabels)) {
+      r5.photoLabels.forEach((lbl, i) => { if (lbl && i < photoLabels.length) photoLabels[i] = lbl; });
+    }
+
+    const savedVals = r5.fieldValues || (r5.info ? {
+      date: r5.info.date||'', area: r5.info.area||'',
+      pole: r5.info.pole||'', terminal: r5.info.terminal||''
+    } : null);
+    if (savedVals) window._pendingVals = savedVals;
+
+    state.poles = (r5.poles||[]).map(p => ({
+      ...p, photos:(p.poles||p.photos||[]).map(ph => ({...ph, _displaySrc:''}))
+    }));
+  } catch(e) { console.warn('loadData 오류:', e); }
+}
+</script>
+</body>
+</html>
