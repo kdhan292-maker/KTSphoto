@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- 카메라 임시 파일 저장 경로 -->
+    <cache-path name="camera_temp" path="camera_temp/" />
+</paths>
